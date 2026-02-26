@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>노션 독서 캘린더 (블랙&화이트 테마)</title>
+    <style>
+        /* 기본 리셋 및 투명 배경 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: transparent; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+        }
+
+        /* 위젯 프레임 (전체 흰색 배경) */
+        #widget {
+            width: 320px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 15px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ---------------------------------
+           상단 헤더 바 (기존의 다크 컬러 #2b2b2b 적용)
+           --------------------------------- */
+        .header-bar {
+            width: 100%;
+            background-color: #2b2b2b; /* 완전 검은색이 아닌 기존 색상 */
+            color: #ffffff; /* 흰색 글씨 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        /* 왼쪽: 월 이동 컨트롤 */
+        .month-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+        .month-nav button {
+            background: none; border: none; color: #ffffff;
+            font-size: 18px; cursor: pointer; padding: 0 5px;
+            transition: opacity 0.2s;
+            font-family: inherit;
+        }
+        .month-nav button:hover { opacity: 0.7; }
+        #month-text { color: #ffffff; }
+
+        /* 오른쪽: 새로고침 버튼 */
+        .refresh-btn {
+            background: none; border: none; color: #ffffff;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s;
+        }
+        .refresh-btn:hover { opacity: 0.7; }
+        .refresh-icon { font-size: 14px; }
+
+        /* ---------------------------------
+           달력 본문
+           --------------------------------- */
+        /* 요일 헤더 (모두 동일한 검은색) */
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #000000; /* 글씨 검은색 */
+            margin-bottom: 10px;
+        }
+
+        /* 캘린더 그리드 (검은색 1px 라인) */
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            width: 100%;
+            border: 1px solid #000000; /* 전체 겉 테두리 검은색 */
+            margin-bottom: 15px;
+            background-color: #000000; /* 칸 사이 1px 간격을 검은색으로 채움 */
+            gap: 1px; /* 1px 간격 */
+        }
+
+        /* 개별 날짜 칸 */
+        .day-cell {
+            background-color: #ffffff; /* 기본 칸 배경은 흰색 */
+            aspect-ratio: 1 / 1.1; 
+            position: relative;
+            display: flex;
+            justify-content: flex-start; /* 왼쪽 정렬 */
+            align-items: flex-start; /* 위쪽 정렬 (왼쪽 위 위치) */
+            padding: 4px 6px; 
+            overflow: hidden;
+        }
+
+        /* 날짜 숫자 (색상 반전 마법) */
+        .day-number {
+            position: relative;
+            z-index: 2; 
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff; 
+            mix-blend-mode: difference; /* 흰 배경에선 검은색, 어두운 이미지에선 흰색 자동 변환 */
+            pointer-events: none; 
+        }
+
+        /* 책 표지 이미지 */
+        .book-cover {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* ---------------------------------
+           버튼 및 기타 UI
+           --------------------------------- */
+        /* 추가 버튼 */
+        .add-btn {
+            background-color: #ffffff;
+            border: 1px solid #000000;
+            color: #000000;
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .add-btn:hover {
+            background: #f0f0f0;
+        }
+
+        /* 로딩 오버레이 */
+        #loading {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 10;
+        }
+        .hidden { display: none !important; }
+
+        .spinner {
+            width: 24px; height: 24px; border: 3px solid #ccc; border-top-color: #000; border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="widget">
+        <div class="header-bar">
+            <div class="month-nav">
+                <button onclick="changeMonth(-1)">&lt;</button>
+                <span id="month-text">2월</span>
+                <button onclick="changeMonth(1)">&gt;</button>
+            </div>
+            <button class="refresh-btn" onclick="fetchMonthData()">
+                READY <span class="refresh-icon">↻</span>
+            </button>
+        </div>
+        
+        <div class="weekdays">
+            <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+        </div>
+        
+        <div class="days-grid" id="calendar-grid">
+            </div>
+
+        <button class="add-btn" onclick="handleAddEntry()">⚘ ⋆｡°₊ ⊹˚ READING ⋆˙⟡₊ ⊹˚</button>
+
+        <div id="loading" class="hidden">
+            <div class="spinner"></div> <span id="loading-text">Loading...</span>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🔑 API 설정
+        // ==========================================
+        const CONFIG = {
+            NOTION_TOKEN: "ntn_" + "280187072944cqL2Elk03lvpZHo9tR0FxkvwyXPh9qF2CV",
+            BOOK_DB_ID: "3066860b8b5e800aa8a4eff715ba9d58",
+            PROXY_URL: "https://cors-anywhere.herokuapp.com/"
+        };
+
+        const headers = {
+            "Authorization": `Bearer ${CONFIG.NOTION_TOKEN}`,
+            "Content-Type": "application/json",
+            "Notion-Version": "2022-06-28"
+        };
+
+        let currentYear, currentMonth;
+        let readBooksMap = {};
+
+        // --- 1. 초기화 ---
+        function init() {
+            const today = new Date();
+            currentYear = today.getFullYear();
+            currentMonth = today.getMonth(); // 0: 1월, 1: 2월
+            updateMonthHeader();
+            fetchMonthData();
+        }
+
+        // --- 2. 월 이동 및 헤더 업데이트 ---
+        function updateMonthHeader() {
+            document.getElementById('month-text').textContent = `${currentMonth + 1}월`;
+        }
+
+        function changeMonth(step) {
+            currentMonth += step;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            updateMonthHeader();
+            fetchMonthData();
+        }
+
+        // --- 3. 데이터 불러오기 (본문 첫 이미지 포함) ---
+        async function fetchMonthData() {
+            showLoading("데이터를 불러오는 중...");
+            readBooksMap = {};
+            
+            const startDate = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
+            const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
+
+            const payload = {
+                "filter": {
+                    "and": [
+                        { "property": "상태", "select": { "equals": "완독한 책" } },
+                        { "property": "완독한 날짜", "date": { "on_or_after": startDate } },
+                        { "property": "완독한 날짜", "date": { "on_or_before": endDate } }
+                    ]
+                }
+            };
+
+            try {
+                const response = await fetch(`${CONFIG.PROXY_URL}https://api.notion.com/v1/databases/${CONFIG.BOOK_DB_ID}/query`, {
+                    method: 'POST', headers: headers, body: JSON.stringify(payload)
+                });
+                if(!response.ok) throw new Error("API 요청 실패");
+                
+                const data = await response.json();
+                
+                await Promise.all(data.results.map(async (page) => {
+                    const dateProp = page.properties["완독한 날짜"].date;
+                    if (!dateProp) return;
+
+                    const readDate = dateProp.start;
+                    let coverUrl = null;
+
+                    try {
+                        const blockRes = await fetch(`${CONFIG.PROXY_URL}https://api.notion.com/v1/blocks/${page.id}/children?page_size=50`, {
+                            method: 'GET', headers: headers
+                        });
+                        const blockData = await blockRes.json();
+                        const imgBlock = blockData.results.find(block => block.type === 'image');
+
+                        if (imgBlock) {
+                            coverUrl = imgBlock.image.type === 'external' ? imgBlock.image.external.url : imgBlock.image.file.url;
+                        }
+                    } catch (e) {
+                        console.error("본문 불러오기 에러:", e);
+                    }
+                    
+                    readBooksMap[readDate] = coverUrl; 
+                }));
+                
+                renderCalendar();
+            } catch (error) {
+                console.error(error);
+                renderCalendar();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // --- 4. 캘린더 그리기 ---
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            
+            let blanks = firstDay;
+
+            // 빈칸 그리기
+            for (let i = 0; i < blanks; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                grid.appendChild(cell);
+            }
+
+            // 날짜 그리기
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+
+                // 숫자 요소 추가
+                const numSpan = document.createElement('span');
+                numSpan.className = 'day-number';
+                numSpan.textContent = day;
+                cell.appendChild(numSpan);
+
+                const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                // 책 표지가 있다면 추가
+                if (readBooksMap[dateString]) {
+                    const img = document.createElement('img');
+                    img.src = readBooksMap[dateString];
+                    img.className = 'book-cover';
+                    cell.appendChild(img);
+                }
+
+                grid.appendChild(cell);
+            }
+
+            // 마지막 주 빈칸 채우기
+            const totalCells = blanks + daysInMonth;
+            const remainingCells = (7 - (totalCells % 7)) % 7;
+            for (let i = 0; i < remainingCells; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                grid.appendChild(cell);
+            }
+        }
+
+        // --- 5. 버튼 동작 ---
+        async function handleAddEntry() {
+            showLoading("읽는 중인 책 찾는 중...");
+            const queryPayload = {
+                "filter": { "property": "상태", "select": { "equals": "읽는 중인 책" } }
+            };
+
+            try {
+                const response = await fetch(`${CONFIG.PROXY_URL}https://api.notion.com/v1/databases/${CONFIG.BOOK_DB_ID}/query`, {
+                    method: 'POST', headers: headers, body: JSON.stringify(queryPayload)
+                });
+                const data = await response.json();
+
+                if (data.results.length === 0) {
+                    alert("현재 '읽는 중인 책'이 없습니다.");
+                    hideLoading();
+                    return;
+                }
+
+                const targetBookId = data.results[0].id;
+                const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
+                showLoading("완독 처리 및 표지 불러오는 중...");
+                const patchPayload = {
+                    "properties": {
+                        "상태": { "select": { "name": "완독한 책" } },
+                        "완독한 날짜": { "date": { "start": todayStr } }
+                    }
+                };
+
+                const patchRes = await fetch(`${CONFIG.PROXY_URL}https://api.notion.com/v1/pages/${targetBookId}`, {
+                    method: 'PATCH', headers: headers, body: JSON.stringify(patchPayload)
+                });
+
+                if (!patchRes.ok) throw new Error("업데이트 실패");
+                await fetchMonthData();
+
+            } catch (error) {
+                console.error(error);
+                alert(`에러 발생: ${error.message}`);
+                hideLoading();
+            }
+        }
+
+        // --- 로딩 UI ---
+        function showLoading(text) {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('loading-text').textContent = text;
+        }
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        // 위젯 시작
+        init();
+
+    </script>
+</body>
+</html>
