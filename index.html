@@ -16,10 +16,10 @@
             height: 100vh;
         }
 
-        /* 위젯 전체 프레임 (투명 배경) */
+        /* 위젯 전체 프레임 */
         #widget {
             width: 340px;
-            background-color: transparent; /* 위젯 배경 투명 */
+            background-color: transparent; 
             position: relative;
             display: flex;
             flex-direction: column;
@@ -31,26 +31,26 @@
             width: 100%;
             background-color: #ffffff; /* 달력 바탕 흰색 */
             border: 1px solid #2b2b2b; /* 전체 외곽선 */
-            border-radius: 4px; /* 바깥쪽만 살짝 둥글게 */
+            border-radius: 4px; 
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             margin-bottom: 15px;
         }
 
         /* ---------------------------------
-           상단 헤더 바 (윗줄 꽉 채우기)
+           상단 헤더 바
            --------------------------------- */
         .header-bar {
             width: 100%;
-            background-color: #2b2b2b; /* 검은색 배경 */
+            background-color: #2b2b2b; 
             color: #ffffff;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 12px 15px;
             font-weight: 600;
-            border-radius: 0; /* 라운드 제거 */
-            margin: 0; /* 여백 제거하여 딱 붙게 */
+            border-radius: 0; 
+            margin: 0; 
         }
 
         /* 왼쪽: 월 이동 컨트롤 */
@@ -90,30 +90,32 @@
             font-weight: bold;
             color: #2b2b2b;
             padding: 10px 0;
-            border-bottom: 1px solid #2b2b2b; /* 요일과 날짜 사이 구분선 */
+            border-bottom: 1px solid #2b2b2b; 
         }
 
-        /* 캘린더 그리드 (내부 라인 형성) */
+        /* 캘린더 그리드 (간격 부활!) */
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             width: 100%;
-            background-color: #2b2b2b; /* 칸 사이의 1px 선 역할 */
-            gap: 1px; /* 1px 두께의 선을 만듦 */
+            background-color: transparent; /* 배경 투명으로 변경 */
+            gap: 3px; /* 👈 날짜 사이의 간격을 3px로 벌렸습니다 */
+            padding: 8px; /* 그리드 주변 여백 */
         }
 
-        /* 개별 날짜 칸 (직사각형 & 라운드 없음) */
+        /* 개별 날짜 칸 (각자 테두리 가짐) */
         .day-cell {
             background-color: #ffffff; 
-            aspect-ratio: 1 / 1.45; /* 책 표지처럼 세로가 더 긴 직사각형 */
-            border-radius: 0; /* 칸의 둥근 모서리 완전히 제거 */
+            border: 1px solid #2b2b2b; /* 👈 각 칸마다 독립적인 검은색 라인 적용 */
+            aspect-ratio: 1 / 1.45; /* 책 표지 직사각형 비율 */
+            border-radius: 0; 
             position: relative;
             display: flex;
             padding: 4px 5px; 
             overflow: hidden;
         }
 
-        /* 날짜 숫자 (왼쪽 위, 마법의 색상 반전) */
+        /* 날짜 숫자 */
         .day-number {
             position: relative;
             z-index: 2; 
@@ -134,14 +136,14 @@
         }
 
         /* ---------------------------------
-           READING 버튼 (추가 버튼)
+           READING 버튼
            --------------------------------- */
         .add-btn {
             background-color: #ffffff;
             border: 1px solid #2b2b2b;
             color: #2b2b2b;
             padding: 12px 20px;
-            border-radius: 25px; /* 버튼만 부드러운 타원형 */
+            border-radius: 25px; 
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
@@ -278,7 +280,6 @@
                     method: 'POST', headers: headers, body: JSON.stringify(payload)
                 });
                 
-                // 프록시 만료로 HTML이 반환되는 에러를 방지하기 위해 텍스트로 먼저 확인
                 const textData = await response.text();
                 if (textData.includes("See /corsdemo")) {
                     throw new Error("PROXY_EXPIRED");
@@ -337,6 +338,7 @@
             for (let i = 0; i < blanks; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
+                cell.style.borderColor = 'transparent'; // 빈칸은 테두리 숨기기 (원하시면 이 줄을 지워 빈칸도 테두리 보이게 가능)
                 grid.appendChild(cell);
             }
 
@@ -368,6 +370,7 @@
             for (let i = 0; i < remainingCells; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
+                cell.style.borderColor = 'transparent'; // 빈칸 테두리 숨기기
                 grid.appendChild(cell);
             }
         }
@@ -397,7 +400,6 @@
 
                 const targetBookId = data.results[0].id;
                 
-                // 한국 시간(KST)으로 오늘 날짜 정확하게 뽑기
                 const now = new Date();
                 const kstOffset = 9 * 60 * 60 * 1000;
                 const todayStr = new Date(now.getTime() + kstOffset).toISOString().split('T')[0];
@@ -416,7 +418,6 @@
 
                 if (!patchRes.ok) throw new Error("업데이트 실패");
                 
-                // 업데이트 후 달력 리로드
                 await fetchMonthData();
 
             } catch (error) {
