@@ -3,69 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>노션 독서 캘린더 (직사각형 책 모양)</title>
+    <title>노션 독서 캘린더 (직사각형/투명 테마)</title>
     <style>
-        /* 기본 리셋 및 투명 배경 */
+        /* 기본 리셋 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: transparent; 
+            background-color: transparent; /* body 투명 */
             display: flex; 
             justify-content: center; 
             align-items: center; 
             height: 100vh;
         }
 
-        /* 위젯 프레임 */
+        /* 위젯 전체 프레임 (투명 배경) */
         #widget {
-            width: 340px; /* 직사각형 칸들이 들어가도록 너비 살짝 넓힘 */
-            background-color: #ffffff;
-            border-radius: 12px;
-            border: 1px solid #2b2b2b;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            padding: 15px;
+            width: 340px;
+            background-color: transparent; /* 위젯 배경 투명 */
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
+        /* 캘린더를 감싸는 메인 컨테이너 */
+        .calendar-container {
+            width: 100%;
+            background-color: #ffffff; /* 달력 바탕 흰색 */
+            border: 1px solid #2b2b2b; /* 전체 외곽선 */
+            border-radius: 4px; /* 바깥쪽만 살짝 둥글게 */
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
         /* ---------------------------------
-           상단 헤더 바
+           상단 헤더 바 (윗줄 꽉 채우기)
            --------------------------------- */
         .header-bar {
             width: 100%;
-            background-color: #2b2b2b; 
+            background-color: #2b2b2b; /* 검은색 배경 */
             color: #ffffff;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
+            padding: 12px 15px;
             font-weight: 600;
+            border-radius: 0; /* 라운드 제거 */
+            margin: 0; /* 여백 제거하여 딱 붙게 */
         }
 
+        /* 왼쪽: 월 이동 컨트롤 */
         .month-nav {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 16px;
+            gap: 10px;
+            font-size: 15px;
         }
         .month-nav button {
             background: none; border: none; color: #ffffff; 
-            font-size: 18px; cursor: pointer; padding: 0 5px;
+            font-size: 16px; cursor: pointer; padding: 0 5px;
             transition: opacity 0.2s;
             font-family: inherit;
         }
         .month-nav button:hover { opacity: 0.6; }
-        #month-text { color: #ffffff; }
 
+        /* 오른쪽: 새로고침 버튼 */
         .refresh-btn {
             background: none; border: none; color: #ffffff; 
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            display: flex; align-items: center; gap: 5px;
-            letter-spacing: 0.5px;
+            font-size: 12px; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
             transition: opacity 0.2s;
         }
         .refresh-btn:hover { opacity: 0.6; }
@@ -79,48 +86,43 @@
             grid-template-columns: repeat(7, 1fr);
             width: 100%;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             color: #2b2b2b;
-            margin-bottom: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #2b2b2b; /* 요일과 날짜 사이 구분선 */
         }
 
-        /* 캘린더 그리드 (간격 추가) */
+        /* 캘린더 그리드 (내부 라인 형성) */
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             width: 100%;
-            gap: 5px; /* 날짜별 칸 사이에 5px 간격 두기 */
-            margin-bottom: 15px;
+            background-color: #2b2b2b; /* 칸 사이의 1px 선 역할 */
+            gap: 1px; /* 1px 두께의 선을 만듦 */
         }
 
-        /* 개별 날짜 칸 (책 모양 직사각형) */
+        /* 개별 날짜 칸 (직사각형 & 라운드 없음) */
         .day-cell {
             background-color: #ffffff; 
-            border: 1px solid #2b2b2b; /* 개별 칸마다 검은색 테두리 */
-            border-radius: 4px; /* 책 모서리처럼 살짝만 둥글게 */
-            aspect-ratio: 1 / 1.4; /* 책 표지와 유사한 세로로 긴 직사각형 비율 */
+            aspect-ratio: 1 / 1.45; /* 책 표지처럼 세로가 더 긴 직사각형 */
+            border-radius: 0; /* 칸의 둥근 모서리 완전히 제거 */
             position: relative;
             display: flex;
-            padding: 4px; /* 날짜 숫자 왼쪽 위 배치용 여백 */
+            padding: 4px 5px; 
             overflow: hidden;
         }
 
-        /* 빈칸(날짜 없는 곳)도 모양 유지하지만 테두리는 살짝 연하게 할 경우 (선택) */
-        .day-cell.empty {
-            border: 1px solid #e0e0e0;
-            background-color: #f9f9f9;
-        }
-
-        /* 날짜 숫자 */
+        /* 날짜 숫자 (왼쪽 위, 마법의 색상 반전) */
         .day-number {
             position: relative;
             z-index: 2; 
             font-size: 11px;
             font-weight: bold;
             color: #ffffff; 
-            mix-blend-mode: difference; /* 색상 자동 반전 */
+            mix-blend-mode: difference; /* 배경에 따라 흑/백 자동 변환 */
             pointer-events: none; 
+            line-height: 1;
         }
 
         /* 책 표지 이미지 */
@@ -132,42 +134,43 @@
         }
 
         /* ---------------------------------
-           버튼 및 기타 UI
+           READING 버튼 (추가 버튼)
            --------------------------------- */
         .add-btn {
             background-color: #ffffff;
             border: 1px solid #2b2b2b;
             color: #2b2b2b;
             padding: 12px 20px;
-            border-radius: 20px;
+            border-radius: 25px; /* 버튼만 부드러운 타원형 */
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
-            letter-spacing: 1px;
             transition: all 0.2s;
             width: 100%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .add-btn:hover {
             background: #f0f0f0;
         }
 
+        /* 로딩 오버레이 */
         #loading {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.9);
             color: #2b2b2b;
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 12px;
+            border-radius: 4px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: bold;
             z-index: 10;
         }
         .hidden { display: none !important; }
 
         .spinner {
-            width: 24px; height: 24px; border: 3px solid #e0e0e0; border-top-color: #2b2b2b; border-radius: 50%;
+            width: 20px; height: 20px; border: 3px solid #ccc; border-top-color: #2b2b2b; border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-right: 10px;
         }
@@ -178,33 +181,37 @@
 <body>
 
     <div id="widget">
-        <div class="header-bar">
-            <div class="month-nav">
-                <button onclick="changeMonth(-1)">&lt;</button>
-                <span id="month-text">2월</span>
-                <button onclick="changeMonth(1)">&gt;</button>
+        
+        <div class="calendar-container">
+            <div class="header-bar">
+                <div class="month-nav">
+                    <button onclick="changeMonth(-1)">&lt;</button>
+                    <span id="month-text">2월</span>
+                    <button onclick="changeMonth(1)">&gt;</button>
+                </div>
+                <button class="refresh-btn" onclick="fetchMonthData()">
+                    READY ↻
+                </button>
             </div>
-            <button class="refresh-btn" onclick="fetchMonthData()">
-                READY <span class="refresh-icon">↻</span>
-            </button>
+            
+            <div class="weekdays">
+                <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+            </div>
+            
+            <div class="days-grid" id="calendar-grid"></div>
+
+            <div id="loading" class="hidden">
+                <div class="spinner"></div> <span id="loading-text">Loading...</span>
+            </div>
         </div>
-        
-        <div class="weekdays">
-            <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
-        </div>
-        
-        <div class="days-grid" id="calendar-grid"></div>
 
         <button class="add-btn" onclick="handleAddEntry()">⚘ ⋆｡°₊ ⊹˚ READING ⋆˙⟡₊ ⊹˚</button>
 
-        <div id="loading" class="hidden">
-            <div class="spinner"></div> <span id="loading-text">Loading...</span>
-        </div>
     </div>
 
     <script>
         // ==========================================
-        // 🔑 API 설정 
+        // 🔑 API 설정
         // ==========================================
         const CONFIG = {
             NOTION_TOKEN: "ntn_" + "280187072949rbGreosTJaTzXlsq2lCXamKxe7feBSv4zl",
@@ -271,12 +278,14 @@
                     method: 'POST', headers: headers, body: JSON.stringify(payload)
                 });
                 
-                // 프록시 만료 또는 네트워크 에러 발생 시 처리
-                if(!response.ok) {
-                    throw new Error("API 요청 실패: 프록시 서버 접근 권한을 확인해주세요.");
+                // 프록시 만료로 HTML이 반환되는 에러를 방지하기 위해 텍스트로 먼저 확인
+                const textData = await response.text();
+                if (textData.includes("See /corsdemo")) {
+                    throw new Error("PROXY_EXPIRED");
                 }
                 
-                const data = await response.json();
+                const data = JSON.parse(textData);
+                if(data.object === "error") throw new Error(data.message);
                 
                 await Promise.all(data.results.map(async (page) => {
                     const dateProp = page.properties["완독한 날짜"].date;
@@ -305,7 +314,10 @@
                 renderCalendar();
             } catch (error) {
                 console.error(error);
-                renderCalendar(); // 에러가 나도 빈 달력은 그리도록 유지
+                if (error.message === "PROXY_EXPIRED") {
+                    alert("CORS 보안 우회 권한이 만료되었습니다.\n새 탭에서 프록시 데모 사이트의 권한을 다시 승인해주세요!");
+                }
+                renderCalendar();
             } finally {
                 hideLoading();
             }
@@ -321,10 +333,10 @@
             
             let blanks = firstDay;
 
-            // 시작 전 빈칸 그리기
+            // 빈칸 그리기
             for (let i = 0; i < blanks; i++) {
                 const cell = document.createElement('div');
-                cell.className = 'day-cell empty'; // 빈칸 표시 클래스 추가
+                cell.className = 'day-cell';
                 grid.appendChild(cell);
             }
 
@@ -355,14 +367,14 @@
             const remainingCells = (7 - (totalCells % 7)) % 7;
             for (let i = 0; i < remainingCells; i++) {
                 const cell = document.createElement('div');
-                cell.className = 'day-cell empty';
+                cell.className = 'day-cell';
                 grid.appendChild(cell);
             }
         }
 
-        // --- 5. 버튼 동작 ---
+        // --- 5. READING 버튼 동작 ---
         async function handleAddEntry() {
-            showLoading("읽는 중인 책 찾는 중...");
+            showLoading("읽는 중인 책 확인 중...");
             const queryPayload = {
                 "filter": { "property": "상태", "select": { "equals": "읽는 중인 책" } }
             };
@@ -371,18 +383,26 @@
                 const response = await fetch(`${CONFIG.PROXY_URL}https://api.notion.com/v1/databases/${CONFIG.BOOK_DB_ID}/query`, {
                     method: 'POST', headers: headers, body: JSON.stringify(queryPayload)
                 });
-                const data = await response.json();
+                
+                const textData = await response.text();
+                if (textData.includes("See /corsdemo")) throw new Error("PROXY_EXPIRED");
+                
+                const data = JSON.parse(textData);
 
-                if (data.results.length === 0) {
-                    alert("현재 '읽는 중인 책'이 없습니다.");
+                if (!data.results || data.results.length === 0) {
+                    alert("현재 노션에 '읽는 중인 책'이 없습니다!");
                     hideLoading();
                     return;
                 }
 
                 const targetBookId = data.results[0].id;
-                const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                
+                // 한국 시간(KST)으로 오늘 날짜 정확하게 뽑기
+                const now = new Date();
+                const kstOffset = 9 * 60 * 60 * 1000;
+                const todayStr = new Date(now.getTime() + kstOffset).toISOString().split('T')[0];
 
-                showLoading("완독 처리 및 표지 불러오는 중...");
+                showLoading("완독 처리 및 책 표지 반영 중...");
                 const patchPayload = {
                     "properties": {
                         "상태": { "select": { "name": "완독한 책" } },
@@ -395,11 +415,17 @@
                 });
 
                 if (!patchRes.ok) throw new Error("업데이트 실패");
+                
+                // 업데이트 후 달력 리로드
                 await fetchMonthData();
 
             } catch (error) {
                 console.error(error);
-                alert(`에러 발생: ${error.message}`);
+                if (error.message === "PROXY_EXPIRED") {
+                    alert("CORS 보안 권한이 만료되었습니다. 데모 사이트에서 다시 승인해주세요!");
+                } else {
+                    alert(`에러 발생: 시스템을 확인해주세요.`);
+                }
                 hideLoading();
             }
         }
