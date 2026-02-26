@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>노션 독서 캘린더 (화이트 & 다크그레이)</title>
+    <title>노션 독서 캘린더 (직사각형 책 모양)</title>
     <style>
         /* 기본 리셋 및 투명 배경 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,12 +16,12 @@
             height: 100vh;
         }
 
-        /* 위젯 프레임 (흰색 배경) */
+        /* 위젯 프레임 */
         #widget {
-            width: 320px;
+            width: 340px; /* 직사각형 칸들이 들어가도록 너비 살짝 넓힘 */
             background-color: #ffffff;
             border-radius: 12px;
-            border: 1px solid #2b2b2b; /* 기존 다크그레이 테두리 */
+            border: 1px solid #2b2b2b;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             padding: 15px;
             position: relative;
@@ -31,7 +31,7 @@
         }
 
         /* ---------------------------------
-           상단 헤더 바 (기존 색상: #2b2b2b + 흰 글씨)
+           상단 헤더 바
            --------------------------------- */
         .header-bar {
             width: 100%;
@@ -46,7 +46,6 @@
             font-weight: 600;
         }
 
-        /* 왼쪽: 월 이동 컨트롤 (< M월 >) */
         .month-nav {
             display: flex;
             align-items: center;
@@ -62,7 +61,6 @@
         .month-nav button:hover { opacity: 0.6; }
         #month-text { color: #ffffff; }
 
-        /* 오른쪽: 새로고침 버튼 (READY ↻) */
         .refresh-btn {
             background: none; border: none; color: #ffffff; 
             font-size: 13px; font-weight: 600; cursor: pointer;
@@ -71,12 +69,11 @@
             transition: opacity 0.2s;
         }
         .refresh-btn:hover { opacity: 0.6; }
-        .refresh-icon { font-size: 14px; }
 
         /* ---------------------------------
            달력 본문
            --------------------------------- */
-        /* 요일 헤더 (전체 다크그레이 통일, 일요일도 동일) */
+        /* 요일 헤더 */
         .weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -88,37 +85,41 @@
             margin-bottom: 10px;
         }
 
-        /* 캘린더 그리드 (검은색 1px 격자 라인) */
+        /* 캘린더 그리드 (간격 추가) */
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             width: 100%;
-            border: 1px solid #2b2b2b;
-            border-radius: 8px;
-            overflow: hidden;
+            gap: 5px; /* 날짜별 칸 사이에 5px 간격 두기 */
             margin-bottom: 15px;
-            background-color: #2b2b2b; /* 선 색상 역할 */
-            gap: 1px; /* 1px 두께 간격 */
         }
 
-        /* 개별 날짜 칸 */
+        /* 개별 날짜 칸 (책 모양 직사각형) */
         .day-cell {
-            background-color: #ffffff; /* 칸 내부 흰색 */
-            aspect-ratio: 1 / 1.1; 
+            background-color: #ffffff; 
+            border: 1px solid #2b2b2b; /* 개별 칸마다 검은색 테두리 */
+            border-radius: 4px; /* 책 모서리처럼 살짝만 둥글게 */
+            aspect-ratio: 1 / 1.4; /* 책 표지와 유사한 세로로 긴 직사각형 비율 */
             position: relative;
             display: flex;
-            padding: 6px; 
+            padding: 4px; /* 날짜 숫자 왼쪽 위 배치용 여백 */
             overflow: hidden;
         }
 
-        /* 날짜 숫자 (마법의 색상 반전) */
+        /* 빈칸(날짜 없는 곳)도 모양 유지하지만 테두리는 살짝 연하게 할 경우 (선택) */
+        .day-cell.empty {
+            border: 1px solid #e0e0e0;
+            background-color: #f9f9f9;
+        }
+
+        /* 날짜 숫자 */
         .day-number {
             position: relative;
             z-index: 2; 
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: bold;
             color: #ffffff; 
-            mix-blend-mode: difference; /* 표지가 밝으면 검은색, 어두우면 흰색 자동 변환 */
+            mix-blend-mode: difference; /* 색상 자동 반전 */
             pointer-events: none; 
         }
 
@@ -133,7 +134,6 @@
         /* ---------------------------------
            버튼 및 기타 UI
            --------------------------------- */
-        /* 추가 버튼 */
         .add-btn {
             background-color: #ffffff;
             border: 1px solid #2b2b2b;
@@ -151,7 +151,6 @@
             background: #f0f0f0;
         }
 
-        /* 로딩 오버레이 */
         #loading {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -205,10 +204,9 @@
 
     <script>
         // ==========================================
-        // 🔑 API 설정 (새로 알려주신 토큰 적용 완료)
+        // 🔑 API 설정 
         // ==========================================
         const CONFIG = {
-            // 🚨 깃허브 보안 삭제 방지를 위해 분리 입력
             NOTION_TOKEN: "ntn_" + "280187072949rbGreosTJaTzXlsq2lCXamKxe7feBSv4zl",
             BOOK_DB_ID: "3066860b8b5e800aa8a4eff715ba9d58",
             PROXY_URL: "https://cors-anywhere.herokuapp.com/"
@@ -272,7 +270,11 @@
                 const response = await fetch(`${CONFIG.PROXY_URL}https://api.notion.com/v1/databases/${CONFIG.BOOK_DB_ID}/query`, {
                     method: 'POST', headers: headers, body: JSON.stringify(payload)
                 });
-                if(!response.ok) throw new Error("API 요청 실패");
+                
+                // 프록시 만료 또는 네트워크 에러 발생 시 처리
+                if(!response.ok) {
+                    throw new Error("API 요청 실패: 프록시 서버 접근 권한을 확인해주세요.");
+                }
                 
                 const data = await response.json();
                 
@@ -303,7 +305,7 @@
                 renderCalendar();
             } catch (error) {
                 console.error(error);
-                renderCalendar();
+                renderCalendar(); // 에러가 나도 빈 달력은 그리도록 유지
             } finally {
                 hideLoading();
             }
@@ -319,10 +321,10 @@
             
             let blanks = firstDay;
 
-            // 빈칸 그리기
+            // 시작 전 빈칸 그리기
             for (let i = 0; i < blanks; i++) {
                 const cell = document.createElement('div');
-                cell.className = 'day-cell';
+                cell.className = 'day-cell empty'; // 빈칸 표시 클래스 추가
                 grid.appendChild(cell);
             }
 
@@ -353,7 +355,7 @@
             const remainingCells = (7 - (totalCells % 7)) % 7;
             for (let i = 0; i < remainingCells; i++) {
                 const cell = document.createElement('div');
-                cell.className = 'day-cell';
+                cell.className = 'day-cell empty';
                 grid.appendChild(cell);
             }
         }
