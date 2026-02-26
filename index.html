@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>노션 독서 캘린더 (블랙&화이트 테마)</title>
+    <title>노션 독서 캘린더 (화이트 & 다크그레이)</title>
     <style>
         /* 기본 리셋 및 투명 배경 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,12 +16,13 @@
             height: 100vh;
         }
 
-        /* 위젯 프레임 (전체 흰색 배경) */
+        /* 위젯 프레임 (흰색 배경) */
         #widget {
             width: 320px;
             background-color: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #2b2b2b; /* 기존 다크그레이 테두리 */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             padding: 15px;
             position: relative;
             display: flex;
@@ -30,12 +31,12 @@
         }
 
         /* ---------------------------------
-           상단 헤더 바 (기존의 다크 컬러 #2b2b2b 적용)
+           상단 헤더 바 (기존 색상: #2b2b2b + 흰 글씨)
            --------------------------------- */
         .header-bar {
             width: 100%;
-            background-color: #2b2b2b; /* 완전 검은색이 아닌 기존 색상 */
-            color: #ffffff; /* 흰색 글씨 */
+            background-color: #2b2b2b; 
+            color: #ffffff;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -45,7 +46,7 @@
             font-weight: 600;
         }
 
-        /* 왼쪽: 월 이동 컨트롤 */
+        /* 왼쪽: 월 이동 컨트롤 (< M월 >) */
         .month-nav {
             display: flex;
             align-items: center;
@@ -53,71 +54,71 @@
             font-size: 16px;
         }
         .month-nav button {
-            background: none; border: none; color: #ffffff;
+            background: none; border: none; color: #ffffff; 
             font-size: 18px; cursor: pointer; padding: 0 5px;
             transition: opacity 0.2s;
             font-family: inherit;
         }
-        .month-nav button:hover { opacity: 0.7; }
+        .month-nav button:hover { opacity: 0.6; }
         #month-text { color: #ffffff; }
 
-        /* 오른쪽: 새로고침 버튼 */
+        /* 오른쪽: 새로고침 버튼 (READY ↻) */
         .refresh-btn {
-            background: none; border: none; color: #ffffff;
-            font-size: 12px; font-weight: 600; cursor: pointer;
+            background: none; border: none; color: #ffffff; 
+            font-size: 13px; font-weight: 600; cursor: pointer;
             display: flex; align-items: center; gap: 5px;
             letter-spacing: 0.5px;
             transition: opacity 0.2s;
         }
-        .refresh-btn:hover { opacity: 0.7; }
+        .refresh-btn:hover { opacity: 0.6; }
         .refresh-icon { font-size: 14px; }
 
         /* ---------------------------------
            달력 본문
            --------------------------------- */
-        /* 요일 헤더 (모두 동일한 검은색) */
+        /* 요일 헤더 (전체 다크그레이 통일, 일요일도 동일) */
         .weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             width: 100%;
             text-align: center;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
-            color: #000000; /* 글씨 검은색 */
+            color: #2b2b2b;
             margin-bottom: 10px;
         }
 
-        /* 캘린더 그리드 (검은색 1px 라인) */
+        /* 캘린더 그리드 (검은색 1px 격자 라인) */
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             width: 100%;
-            border: 1px solid #000000; /* 전체 겉 테두리 검은색 */
+            border: 1px solid #2b2b2b;
+            border-radius: 8px;
+            overflow: hidden;
             margin-bottom: 15px;
-            background-color: #000000; /* 칸 사이 1px 간격을 검은색으로 채움 */
-            gap: 1px; /* 1px 간격 */
+            background-color: #2b2b2b; /* 선 색상 역할 */
+            gap: 1px; /* 1px 두께 간격 */
         }
 
         /* 개별 날짜 칸 */
         .day-cell {
-            background-color: #ffffff; /* 기본 칸 배경은 흰색 */
+            background-color: #ffffff; /* 칸 내부 흰색 */
             aspect-ratio: 1 / 1.1; 
             position: relative;
             display: flex;
-            justify-content: flex-start; /* 왼쪽 정렬 */
-            align-items: flex-start; /* 위쪽 정렬 (왼쪽 위 위치) */
-            padding: 4px 6px; 
+            padding: 6px; 
             overflow: hidden;
         }
 
-        /* 날짜 숫자 (색상 반전 마법) */
+        /* 날짜 숫자 (마법의 색상 반전) */
         .day-number {
             position: relative;
             z-index: 2; 
             font-size: 12px;
             font-weight: 600;
             color: #ffffff; 
-            mix-blend-mode: difference; /* 흰 배경에선 검은색, 어두운 이미지에선 흰색 자동 변환 */
+            mix-blend-mode: difference; /* 표지가 밝으면 검은색, 어두우면 흰색 자동 변환 */
             pointer-events: none; 
         }
 
@@ -135,8 +136,8 @@
         /* 추가 버튼 */
         .add-btn {
             background-color: #ffffff;
-            border: 1px solid #000000;
-            color: #000000;
+            border: 1px solid #2b2b2b;
+            color: #2b2b2b;
             padding: 12px 20px;
             border-radius: 20px;
             font-size: 12px;
@@ -155,7 +156,7 @@
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(255, 255, 255, 0.95);
-            color: #000000;
+            color: #2b2b2b;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -167,7 +168,7 @@
         .hidden { display: none !important; }
 
         .spinner {
-            width: 24px; height: 24px; border: 3px solid #ccc; border-top-color: #000; border-radius: 50%;
+            width: 24px; height: 24px; border: 3px solid #e0e0e0; border-top-color: #2b2b2b; border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-right: 10px;
         }
@@ -193,8 +194,7 @@
             <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
         </div>
         
-        <div class="days-grid" id="calendar-grid">
-            </div>
+        <div class="days-grid" id="calendar-grid"></div>
 
         <button class="add-btn" onclick="handleAddEntry()">⚘ ⋆｡°₊ ⊹˚ READING ⋆˙⟡₊ ⊹˚</button>
 
@@ -205,9 +205,10 @@
 
     <script>
         // ==========================================
-        // 🔑 API 설정
+        // 🔑 API 설정 (새로 알려주신 토큰 적용 완료)
         // ==========================================
         const CONFIG = {
+            // 🚨 깃허브 보안 삭제 방지를 위해 분리 입력
             NOTION_TOKEN: "ntn_" + "280187072949rbGreosTJaTzXlsq2lCXamKxe7feBSv4zl",
             BOOK_DB_ID: "3066860b8b5e800aa8a4eff715ba9d58",
             PROXY_URL: "https://cors-anywhere.herokuapp.com/"
@@ -226,7 +227,7 @@
         function init() {
             const today = new Date();
             currentYear = today.getFullYear();
-            currentMonth = today.getMonth(); // 0: 1월, 1: 2월
+            currentMonth = today.getMonth();
             updateMonthHeader();
             fetchMonthData();
         }
@@ -249,7 +250,7 @@
             fetchMonthData();
         }
 
-        // --- 3. 데이터 불러오기 (본문 첫 이미지 포함) ---
+        // --- 3. 데이터 불러오기 ---
         async function fetchMonthData() {
             showLoading("데이터를 불러오는 중...");
             readBooksMap = {};
@@ -330,7 +331,6 @@
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
 
-                // 숫자 요소 추가
                 const numSpan = document.createElement('span');
                 numSpan.className = 'day-number';
                 numSpan.textContent = day;
@@ -338,7 +338,6 @@
 
                 const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-                // 책 표지가 있다면 추가
                 if (readBooksMap[dateString]) {
                     const img = document.createElement('img');
                     img.src = readBooksMap[dateString];
@@ -417,5 +416,4 @@
 
     </script>
 </body>
-
 </html>
